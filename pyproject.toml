@@ -1,0 +1,18 @@
+[project]
+name = "visual-search"
+version = "0.1.0"
+requires-python = "3.12.7"
+
+[tool.poetry.dependencies]
+jupyterlab =  "==4.4.6"
+torchvision = "==0.23.0"
+torch = "==2.8.0"
+matplotlib = "==3.10.6"
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+package-mode = false
