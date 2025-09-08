@@ -1,1 +1,8 @@
+# datasets and model
 data/
+*.pth
+
+# Python cache
+__pycache__/
+*.pyc
+*.ipynb_checkpoints
