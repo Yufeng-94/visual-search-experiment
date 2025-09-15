@@ -1,11 +1,15 @@
 import torch
 
 class PreTrainedImageEncoder(torch.nn.Module):
-    def __init__(self, pre_trained_model: torch.nn.Module):
+    def __init__(
+            self, 
+            pre_trained_model: torch.nn.Module, 
+            device: torch.device=torch.device('cpu')
+            ):
         super().__init__()
         self.layers = torch.nn.ModuleDict(
             dict(pre_trained_model.named_children())
-        )
+        ).to(device)
 
         # Remove 'avgpool' and 'fc' layers
         if 'avgpool' in self.layers:

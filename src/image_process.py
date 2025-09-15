@@ -7,15 +7,12 @@ import utils
 
 def show_image(
         tensor: torch.Tensor, 
-        bboxes: Optional[Dict[int, torch.Tensor]] = None,
+        bboxes: Optional[Dict[int, list]] = None,
         pair_id: Optional[int] = None,
         ax: Optional[plt.Axes] = None,
         ) -> None:
     """
     Display a single image tensor.
-
-    Args:
-        tensor (torch.Tensor): A 3D tensor representing an image (C, H, W).
     """
     if tensor.dim() != 3:
         raise ValueError("Input tensor must be a 3D tensor representing an image (C, H, W).")
@@ -29,12 +26,12 @@ def show_image(
     ax.axis('off')
 
     if bboxes is not None:
-        for style_id, bbox_tensor in bboxes.items():
-            if bbox_tensor.size(0) != 4:
+        for style_id, bbox_coord in bboxes.items():
+            if len(bbox_coord) != 4:
                 raise ValueError("1D Bounding box tensor must be of size 4.")
             
             color = cmap(style_id*0.5)
-            x, y, w, h = bbox_tensor
+            x, y, w, h = bbox_coord
             rect = plt.Rectangle((x, y), w, h, edgecolor=color, facecolor='none')
             ax.add_patch(rect)
 
@@ -72,23 +69,22 @@ def load_image_and_metadata(image_id: str, image_dir: str, metadata_dir: str):
     for k in img_metadata.keys():
         if 'item' in k:
             bbox_coords = img_metadata[k]['bounding_box']
-            bbox_coords = torch.tensor(bbox_coords)
-            bbox_tensor = utils.post_process_bboxes(bbox_coords)
+            bbox_coords = utils.post_process_bboxes(bbox_coords)
 
             bbox_style = img_metadata[k]['style']
 
-            bboxes[bbox_style] = bbox_tensor
+            bboxes[bbox_style] = bbox_coords
 
     pair_id = img_metadata['pair_id']
 
     return image_tensor, bboxes, pair_id
 
-def segment_per_bbox(image_tensor: torch.Tensor, bbox: torch.Tensor) -> torch.Tensor:
+def segment_per_bbox(image_tensor: torch.Tensor, bbox: list) -> torch.Tensor:
     '''
     Segment the image using a given bounding box.
     Args:
         image_tensor (torch.Tensor): A 3D tensor representing an image (C, H, W).
-        bbox (torch.Tensor): A 1D tensor representing a bounding box (x, y, w, h).
+        bbox (list): A list representing a bounding box [x, y, w, h].
     Returns:
         segmented_image (torch.Tensor): The segmented image tensor.
     '''
