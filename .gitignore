@@ -1,8 +1,12 @@
 # datasets and model
 data/
 *.pth
+vector_database/
 
 # Python cache
 __pycache__/
 *.pyc
 *.ipynb_checkpoints
+
+# Environment files
+*.lock
