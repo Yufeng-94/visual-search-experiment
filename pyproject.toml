@@ -9,6 +9,7 @@ torchvision = "==0.23.0"
 torch = "==2.8.0"
 matplotlib = "==3.10.6"
 pandas = "==2.3.2"
+qdrant-client = "==1.15.1"
 
 
 [build-system]
