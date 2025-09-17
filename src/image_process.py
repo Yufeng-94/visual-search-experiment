@@ -5,6 +5,8 @@ import torch
 from torchvision.io import decode_image
 import utils
 
+METADATA_ITEM_KEYS = ['scale', 'viewpoint', 'zoom_in', 'style', 'bounding_box', 'occlusion', 'category_id']
+
 def show_image(
         tensor: torch.Tensor, 
         bboxes: Optional[Dict[int, list]] = None,
@@ -42,42 +44,62 @@ def show_image(
         ax.set_title(title, fontsize=10)
 
 
-def load_image_and_metadata(image_id: str, image_dir: str, metadata_dir: str):
+def load_image_and_metadata(
+        image_name: str, 
+        image_dir: str, 
+        metadata_dir: str,
+        return_bbox: bool=False,
+        ):
     """
     Load an image and its associated bounding box and metadata.
 
     Args:
-        image_id (str): Identifier for the image to be loaded.
+        image_name (str): Identifier for the image to be loaded.
         image_dir (str): Directory where images are stored.
         metadata_dir (str): Directory where metadata files are stored.
+        return_bbox (bool): Whether to return bounding box information.
     Returns:
         image (torch.Tensor): Loaded image tensor.
         bbox (Dict[int: torch.Tensor]): Associated bounding box with style id as key.
         pair_id (int)
     """
-    image_path = f"{image_dir}/{image_id}.jpg"
-    metadata_path = f"{metadata_dir}/{image_id}.json"
+    image_path = f"{image_dir}/{image_name}.jpg"
+    metadata_path = f"{metadata_dir}/{image_name}.json"
 
     # Load image
     image_tensor = decode_image(image_path)
 
     # Load metadata
     with open(metadata_path, 'r') as f:
-        img_metadata = json.load(f)
+        metadata_raw = json.load(f)
 
-    bboxes = {}
-    for k in img_metadata.keys():
+    metadata = {}
+    for k, v in metadata_raw.items():
         if 'item' in k:
-            bbox_coords = img_metadata[k]['bounding_box']
-            bbox_coords = utils.post_process_bboxes(bbox_coords)
+            item_metadata = {}
+            for i_k in METADATA_ITEM_KEYS:
+                if 'bbox' in i_k: # post process bounding box
+                    item_metadata[i_k] = utils.post_process_bboxes(v.get(i_k, []))
+                else:
+                    item_metadata[i_k] = v.get(i_k, None)
+            metadata[k] = item_metadata
+        else:
+            metadata[k] = v
 
-            bbox_style = img_metadata[k]['style']
+    # Add other metadata
+    ## NOTE: could replace with Path
+    metadata['image_name'] = image_name
+    metadata['image_path'] = image_path
 
-            bboxes[bbox_style] = bbox_coords
+    if return_bbox:
+        bboxes = {}
+        for k, v in metadata_raw.items():
+            if 'item' in k and 'bounding_box' in v:
+                bboxes[v['style']] = utils.post_process_bboxes(v['bounding_box'])
 
-    pair_id = img_metadata['pair_id']
+        return image_tensor, metadata, bboxes
 
-    return image_tensor, bboxes, pair_id
+    return image_tensor, metadata
 
 def segment_per_bbox(image_tensor: torch.Tensor, bbox: list) -> torch.Tensor:
     '''
