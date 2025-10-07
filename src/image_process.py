@@ -60,8 +60,8 @@ def load_image_and_metadata(
         return_bbox (bool): Whether to return bounding box information.
     Returns:
         image (torch.Tensor): Loaded image tensor.
-        bbox (Dict[int: torch.Tensor]): Associated bounding box with style id as key.
-        pair_id (int)
+        metadata (dict): Associated metadata.
+        bboxes (dict, optional): Bounding box information if return_bbox is True.
     """
     image_path = f"{image_dir}/{image_name}.jpg"
     metadata_path = f"{metadata_dir}/{image_name}.json"

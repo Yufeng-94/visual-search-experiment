@@ -16,6 +16,7 @@ def mean_average_precision(relevant_scores: torch.Tensor) -> float:
     ranks = torch.arange(1, relevant_scores.shape[1] + 1)
     precision_at_k = torch.cumsum(relevant_scores, axis=1) / ranks
     average_precisions = torch.sum(precision_at_k * relevant_scores, axis=1) / torch.sum(relevant_scores, axis=1)
+    average_precisions = torch.nan_to_num(average_precisions, nan=0.0, posinf=0.0, neginf=0.0)
     mean_ap = torch.mean(average_precisions)
 
     return mean_ap
